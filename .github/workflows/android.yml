@@ -1,16 +1,32 @@
-name: Android APK Build
+name: Android Build
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Test
-        run: echo "Workflow Working"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - run: npm install @capacitor/core @capacitor/android
+
+      - run: npx cap sync android
+
+      - uses: android-actions/setup-android@v3
+
+      - run: chmod +x android/gradlew
+
+      - run: cd android && ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: android/app/build/outputs/apk/debug/*.apk
